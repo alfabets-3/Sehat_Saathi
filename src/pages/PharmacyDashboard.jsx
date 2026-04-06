@@ -138,7 +138,7 @@ export default function PharmacyDashboard() {
                       <div>
                         <div style={{ font:'var(--text-body-medium)' }}>{rx.patient_name}</div>
                         <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)' }}>
-                          Dr. {rx.doctor_name} • {rx.items?.length || 0} items
+                          {rx.doctor_name} • {rx.items?.length || 0} items
                         </div>
                       </div>
                       <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
@@ -181,7 +181,7 @@ export default function PharmacyDashboard() {
                   <div style={{ font:'var(--text-body-medium)' }}>{rx.patient_name}</div>
                   <span className="badge badge-warning">PENDING</span>
                 </div>
-                <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)', marginBottom:'6px' }}>Prescribed by Dr. {rx.doctor_name}</div>
+                <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)', marginBottom:'6px' }}>Prescribed by {rx.doctor_name}</div>
                 <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
                   {rx.items?.map((item,i) => <span key={i} className="badge badge-primary" style={{ fontSize:'10px' }}>{item.name}</span>)}
                 </div>
@@ -331,7 +331,7 @@ export default function PharmacyDashboard() {
                 </div>
                 <div style={{ display:'flex', justifyContent:'space-between' }}>
                   <span style={{ font:'var(--text-caption)', color:'var(--text-tertiary)' }}>DOCTOR</span>
-                  <span style={{ font:'var(--text-body-sm)' }}>Dr. {selectedRx.doctor_name}</span>
+                  <span style={{ font:'var(--text-body-sm)' }}>{selectedRx.doctor_name}</span>
                 </div>
               </div>
 

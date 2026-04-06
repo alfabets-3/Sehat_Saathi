@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, AlertTriangle, MapPin, Activity, Filter, Bell, ChevronDown, X } from 'lucide-react';
+import LanguageSelector from '../components/LanguageSelector';
 
 const sevColorMap = { RED:'#E74C3C', YELLOW:'#F1C40F', GREEN:'#2ECC71' };
 
@@ -10,69 +12,133 @@ function LeafletMap({ villages, onMarkerClick }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
+  const [mapReady, setMapReady] = useState(false);
+
+  // Wait for Leaflet to load
+  useEffect(() => {
+    const checkLeaflet = () => {
+      if (window.L) {
+        setMapReady(true);
+      } else {
+        setTimeout(checkLeaflet, 200);
+      }
+    };
+    checkLeaflet();
+  }, []);
 
   useEffect(() => {
-    if (!mapRef.current || typeof window === 'undefined') return;
-    // Dynamically use Leaflet
+    if (!mapRef.current || !mapReady) return;
     const L = window.L;
-    if (!L) return;
 
+    // Initialize map only once
     if (!mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
-        center: [26.92, 75.78],
-        zoom: 10,
+        center: [23.26, 77.41], // Bhopal center
+        zoom: 9,
         zoomControl: true,
-        attributionControl: false,
+        attributionControl: true,
       });
+      
+      // Use OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
+        attribution: '© OSM',
       }).addTo(mapInstance.current);
+
+      // Force map to render properly after init
+      setTimeout(() => {
+        mapInstance.current.invalidateSize();
+      }, 100);
     }
 
     // Clear old markers
-    markersRef.current.forEach(m => mapInstance.current.removeLayer(m));
+    markersRef.current.forEach(m => {
+      if (mapInstance.current) mapInstance.current.removeLayer(m);
+    });
     markersRef.current = [];
 
     // Add village markers
     villages.forEach(v => {
       if (!v.lat || !v.lng) return;
       const color = sevColorMap[v.maxSeverity] || '#2ECC71';
-      const size = Math.min(40, Math.max(16, v.totalCases * 2));
+      const size = Math.min(44, Math.max(20, v.totalCases * 1.5 + 10));
 
       const icon = L.divIcon({
-        className: 'custom-marker',
+        className: 'heatmap-marker',
         html: `<div style="
           width:${size}px; height:${size}px; border-radius:50%;
-          background:${color}40; border:3px solid ${color};
+          background:${color}35; border:3px solid ${color};
           display:flex; align-items:center; justify-content:center;
-          font:bold 11px/1 'Inter',sans-serif; color:${color};
-          box-shadow:0 2px 8px ${color}60;
+          font:bold 12px/1 'Inter',sans-serif; color:${color};
+          box-shadow:0 2px 12px ${color}50;
           cursor:pointer; transition:transform 0.2s;
-        " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${v.totalCases}</div>`,
+          backdrop-filter: blur(4px);
+        " onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${v.totalCases}</div>`,
         iconSize: [size, size],
         iconAnchor: [size/2, size/2],
       });
 
       const marker = L.marker([v.lat, v.lng], { icon }).addTo(mapInstance.current);
+      
+      // Popup with village info
+      marker.bindPopup(`
+        <div style="font-family:Inter,sans-serif; min-width:140px;">
+          <strong style="font-size:14px;">${v.name}</strong>
+          <div style="color:#666; font-size:12px; margin:2px 0;">${v.district} • Pop: ${v.population?.toLocaleString()}</div>
+          <div style="font-size:16px; font-weight:700; color:${color}; margin-top:4px;">${v.totalCases} cases</div>
+          <div style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">
+            ${v.symptoms?.map(s => `<span style="padding:1px 6px; border-radius:8px; font-size:10px; background:${sevColorMap[s.severity]}20; color:${sevColorMap[s.severity]}; font-weight:600;">${s.type}: ${s.count}</span>`).join('') || ''}
+          </div>
+        </div>
+      `, { className: 'custom-popup' });
+      
       marker.on('click', () => onMarkerClick(v));
       markersRef.current.push(marker);
     });
 
-    // Fit bounds
+    // Fit bounds if we have markers
     if (villages.length > 0) {
-      const bounds = villages.filter(v => v.lat && v.lng).map(v => [v.lat, v.lng]);
-      if (bounds.length > 1) mapInstance.current.fitBounds(bounds, { padding: [30, 30] });
+      const validVillages = villages.filter(v => v.lat && v.lng);
+      if (validVillages.length > 1) {
+        const bounds = validVillages.map(v => [v.lat, v.lng]);
+        mapInstance.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      } else if (validVillages.length === 1) {
+        mapInstance.current.setView([validVillages[0].lat, validVillages[0].lng], 11);
+      }
     }
+  }, [villages, mapReady]);
 
-    return () => {};
-  }, [villages]);
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
+    };
+  }, []);
 
-  return <div ref={mapRef} style={{ width:'100%', height:'100%', borderRadius:'var(--radius-lg)' }} />;
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div ref={mapRef} id="heatmap-container" style={{ width:'100%', height:'100%', borderRadius:'var(--radius-lg)', zIndex: 1 }} />
+      {!mapReady && (
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)',
+        }}>
+          <div className="animate-pulse" style={{ font: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+            Loading map...
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Heatmap() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [alerts, setAlerts] = useState(null);
   const [symptomFilter, setSymptomFilter] = useState('all');
@@ -101,30 +167,33 @@ export default function Heatmap() {
 
   const backPath = user?.role === 'doctor' ? '/doctor' : '/patient';
 
-  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div className="animate-pulse" style={{font:'var(--text-h3)',color:'var(--primary)'}}>Loading heatmap...</div></div>;
+  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div className="animate-pulse" style={{font:'var(--text-h3)',color:'var(--primary)'}}>{t('loading')}</div></div>;
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
       {/* Header */}
       <div style={{ background:'linear-gradient(135deg, #E74C3C 0%, #C0392B 50%, #FF6B9D 100%)', padding:'20px 20px 24px', borderRadius:'0 0 32px 32px' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }}>
-          <button onClick={() => navigate(backPath)} style={{ display:'flex', alignItems:'center', gap:'8px', color:'rgba(255,255,255,0.8)' }}><ArrowLeft size={20} /> Back</button>
-          <button onClick={() => setShowAlerts(true)} style={{ position:'relative', width:'40px',height:'40px',borderRadius:'12px',background:'rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center' }}>
-            <Bell size={20} color="white" />
-            {alerts && alerts.redCount > 0 && (
-              <div style={{ position:'absolute', top:'-4px', right:'-4px', width:'18px', height:'18px', borderRadius:'50%', background:'#FF4757', color:'white', fontSize:'10px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                {alerts.redCount}
-              </div>
-            )}
-          </button>
+          <button onClick={() => navigate(backPath)} style={{ display:'flex', alignItems:'center', gap:'8px', color:'rgba(255,255,255,0.8)' }}><ArrowLeft size={20} /> {t('back')}</button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <LanguageSelector />
+            <button onClick={() => setShowAlerts(true)} style={{ position:'relative', width:'40px',height:'40px',borderRadius:'12px',background:'rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center' }}>
+              <Bell size={20} color="white" />
+              {alerts && alerts.redCount > 0 && (
+                <div style={{ position:'absolute', top:'-4px', right:'-4px', width:'18px', height:'18px', borderRadius:'50%', background:'#FF4757', color:'white', fontSize:'10px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  {alerts.redCount}
+                </div>
+              )}
+            </button>
+          </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
           <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <MapPin size={24} color="white" />
           </div>
           <div>
-            <h1 style={{ font:'var(--text-h2)', color:'white' }}>Village Health Heatmap</h1>
-            <p style={{ font:'var(--text-body-sm)', color:'rgba(255,255,255,0.8)' }}>District-level disease surveillance</p>
+            <h1 style={{ font:'var(--text-h2)', color:'white' }}>{t('villageHealthHeatmap')}</h1>
+            <p style={{ font:'var(--text-body-sm)', color:'rgba(255,255,255,0.8)' }}>{t('diseaseOutbreak')}</p>
           </div>
         </div>
       </div>
@@ -134,7 +203,7 @@ export default function Heatmap() {
         <div style={{ display:'flex', gap:'6px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
           <button onClick={() => setSymptomFilter('all')}
             style={{ padding:'6px 14px', borderRadius:'var(--radius-pill)', font:'var(--text-caption)', fontWeight:600, background: symptomFilter==='all' ? 'var(--primary)' : 'var(--bg-card)', color: symptomFilter==='all' ? 'white' : 'var(--text-secondary)', border: symptomFilter==='all' ? 'none' : '1px solid var(--border)', whiteSpace:'nowrap' }}>
-            All Symptoms
+            {t('allSymptoms')}
           </button>
           {data?.symptomTypes?.map(s => (
             <button key={s} onClick={() => setSymptomFilter(s)}
@@ -146,7 +215,7 @@ export default function Heatmap() {
 
         {/* Legend */}
         <div style={{ display:'flex', gap:'16px', marginBottom:'16px', font:'var(--text-caption)' }}>
-          {[{label:'Low Risk',color:'#2ECC71'},{label:'Medium Risk',color:'#F1C40F'},{label:'High Risk',color:'#E74C3C'}].map(l => (
+          {[{label:t('lowRisk'),color:'#2ECC71'},{label:t('mediumRisk'),color:'#F1C40F'},{label:t('highRisk'),color:'#E74C3C'}].map(l => (
             <div key={l.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
               <div style={{ width:'12px',height:'12px',borderRadius:'50%',background:l.color }} />
               <span style={{ color:'var(--text-secondary)' }}>{l.label}</span>
@@ -155,16 +224,16 @@ export default function Heatmap() {
         </div>
 
         {/* Map */}
-        <div className="card" style={{ padding:0, height:'350px', marginBottom:'16px', overflow:'hidden' }}>
+        <div className="card" style={{ padding:0, height:'380px', marginBottom:'16px', overflow:'hidden', position: 'relative' }}>
           <LeafletMap villages={filteredVillages} onMarkerClick={setSelectedVillage} />
         </div>
 
         {/* Summary Stats */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'16px' }}>
           {[
-            { label:'Villages', value: filteredVillages.length, color:'var(--primary)' },
-            { label:'Total Cases', value: filteredVillages.reduce((a,v) => a+v.totalCases,0), color:'var(--peach-dark)' },
-            { label:'Red Zones', value: filteredVillages.filter(v => v.maxSeverity === 'RED').length, color:'var(--critical)' },
+            { label: t('villages'), value: filteredVillages.length, color:'var(--primary)' },
+            { label: t('totalCases'), value: filteredVillages.reduce((a,v) => a+v.totalCases,0), color:'var(--peach-dark)' },
+            { label: t('redZones'), value: filteredVillages.filter(v => v.maxSeverity === 'RED').length, color:'var(--critical)' },
           ].map((s,i) => (
             <div key={i} className="card" style={{ textAlign:'center', padding:'14px' }}>
               <div style={{ font:'var(--text-stat)', fontSize:'22px', color:s.color }}>{s.value}</div>
@@ -174,8 +243,8 @@ export default function Heatmap() {
         </div>
 
         {/* Village List */}
-        <h3 style={{ font:'var(--text-h3)', marginBottom:'12px' }}>Villages by Severity</h3>
-        {filteredVillages.sort((a,b) => {
+        <h3 style={{ font:'var(--text-h3)', marginBottom:'12px' }}>{t('villagesBySeverity')}</h3>
+        {[...filteredVillages].sort((a,b) => {
           const order = { RED:2, YELLOW:1, GREEN:0 };
           return (order[b.maxSeverity]||0) - (order[a.maxSeverity]||0) || b.totalCases - a.totalCases;
         }).map((v,i) => (
@@ -189,7 +258,7 @@ export default function Heatmap() {
               </div>
               <div style={{ textAlign:'right' }}>
                 <div style={{ font:'var(--text-stat)', fontSize:'20px', color:sevColorMap[v.maxSeverity] }}>{v.totalCases}</div>
-                <div style={{ font:'var(--text-caption)', color:'var(--text-tertiary)' }}>cases</div>
+                <div style={{ font:'var(--text-caption)', color:'var(--text-tertiary)' }}>{t('cases')}</div>
               </div>
             </div>
             {v.symptoms?.length > 0 && (
@@ -222,17 +291,17 @@ export default function Heatmap() {
               <div style={{ display:'flex', gap:'10px', marginBottom:'16px' }}>
                 <div className="card-flat" style={{ flex:1, textAlign:'center' }}>
                   <div style={{ font:'var(--text-stat)', fontSize:'28px', color:sevColorMap[selectedVillage.maxSeverity] }}>{selectedVillage.totalCases}</div>
-                  <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)' }}>Total Cases</div>
+                  <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)' }}>{t('totalCases')}</div>
                 </div>
                 <div className="card-flat" style={{ flex:1, textAlign:'center' }}>
                   <span className={`badge ${selectedVillage.maxSeverity==='RED'?'badge-danger':selectedVillage.maxSeverity==='YELLOW'?'badge-warning':'badge-success'}`} style={{ fontSize:'14px', padding:'6px 16px' }}>
                     {selectedVillage.maxSeverity}
                   </span>
-                  <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)', marginTop:'4px' }}>Severity</div>
+                  <div style={{ font:'var(--text-caption)', color:'var(--text-secondary)', marginTop:'4px' }}>{t('severity')}</div>
                 </div>
               </div>
 
-              <h3 style={{ font:'var(--text-body-medium)', marginBottom:'10px' }}>Symptoms Breakdown</h3>
+              <h3 style={{ font:'var(--text-body-medium)', marginBottom:'10px' }}>{t('symptomsBreakdown')}</h3>
               {selectedVillage.symptoms?.map((s,i) => (
                 <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom: '1px solid var(--divider)' }}>
                   <span style={{ font:'var(--text-body-sm)' }}>{s.type}</span>
@@ -257,18 +326,18 @@ export default function Heatmap() {
               onClick={e => e.stopPropagation()}
               style={{ width:'100%', maxHeight:'80vh', background:'var(--bg-card)', borderRadius:'24px 24px 0 0', overflow:'auto', padding:'20px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-                <h2 style={{ font:'var(--text-h2)' }}>Health Alerts</h2>
+                <h2 style={{ font:'var(--text-h2)' }}>{t('healthAlerts')}</h2>
                 <button onClick={() => setShowAlerts(false)} style={{ width:'32px',height:'32px',borderRadius:'50%',background:'var(--primary-bg)',display:'flex',alignItems:'center',justifyContent:'center' }}><X size={18} color="var(--primary)" /></button>
               </div>
 
               <div style={{ display:'flex', gap:'10px', marginBottom:'16px' }}>
                 <div className="card-flat" style={{ flex:1, textAlign:'center', background:'var(--critical-bg)' }}>
                   <div style={{ font:'var(--text-stat)', fontSize:'24px', color:'var(--critical)' }}>{alerts.redCount}</div>
-                  <div style={{ font:'var(--text-caption)', color:'var(--critical)' }}>Red Alerts</div>
+                  <div style={{ font:'var(--text-caption)', color:'var(--critical)' }}>{t('redAlerts')}</div>
                 </div>
                 <div className="card-flat" style={{ flex:1, textAlign:'center', background:'var(--moderate-bg)' }}>
                   <div style={{ font:'var(--text-stat)', fontSize:'24px', color:'#B8860B' }}>{alerts.yellowCount}</div>
-                  <div style={{ font:'var(--text-caption)', color:'#B8860B' }}>Warnings</div>
+                  <div style={{ font:'var(--text-caption)', color:'#B8860B' }}>{t('warnings')}</div>
                 </div>
               </div>
 
