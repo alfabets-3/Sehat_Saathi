@@ -1,0 +1,637 @@
+# Sehat Saathi — Master TODO List
+
+> **Sources**: `Sehat_Saathi_PRD.docx` (PRD) · `mindful_ui_design_doc.docx` (Design Doc)
+> Generated: April 2026
+
+---
+
+## Legend
+
+- `[ ]` — Not started
+- `[/]` — In progress
+- `[x]` — Done
+- **PRD §X** — Reference to PRD section
+- **DD §X** — Reference to Design Doc section
+
+---
+
+## 0. Project Setup & Foundation
+
+- [ ] **Initialize React Native project** with Expo or bare workflow *(DD §8.2)*
+- [ ] **Set up design token system** — export colors, spacing, typography as JSON *(DD §8.1)*
+- [ ] **Configure styled-components or NativeWind** for token-based styling *(DD §8.2)*
+- [ ] **Set up monorepo structure** — patient portal, doctor dashboard, pharmacy module, shared libs *(PRD §5)*
+- [ ] **Configure CI/CD pipeline** — linting, testing, build
+- [ ] **Set up AWS infrastructure** — Docker + k8s on ap-south-1 (Mumbai) *(PRD §5)*
+- [ ] **Configure PostgreSQL** (primary DB) + **CouchDB** (offline sync) *(PRD §5)*
+- [ ] **Configure Redis + BullMQ** for queue engine *(PRD §5)*
+- [ ] **Set up Service Workers** for PWA offline support *(PRD §5)*
+- [ ] **Implement encryption** — AES-256 at rest, TLS 1.3 in transit *(PRD §12)*
+
+---
+
+## 1. Design System & UI Foundation *(DD §2–4)*
+
+### 1.1 Color Palette *(DD §2.1)*
+- [ ] Define primary colors: Lavender Purple `#6B5CE7`, Soft Lavender `#E8E4FF`
+- [ ] Define accent colors: Mint Teal `#4ECDC4`, Rose Pink `#FF6B9D`, Warm Peach `#FFB347`
+- [ ] Define neutrals: Background `#F9F7FF`, Text Primary `#2D2B55`, Text Secondary `#6B6890`
+- [ ] Create dark mode variants for all colors *(DD §8.3)*
+
+### 1.2 Typography *(DD §2.2)*
+- [ ] Set up two-family type system: humanist sans-serif + monospace
+- [ ] Implement type scale: Display (34px/700), H1 (28px/700), H2 (22px/600), H3 (18px/600), Body (16px/400), Body Small (14px/400), Caption (12px/400), Button (16px/600), Stat/Counter (32px/700 Mono)
+- [ ] Configure Dynamic Type / font scaling support *(DD §7.4)*
+
+### 1.3 Iconography *(DD §2.3)*
+- [ ] Install Lucide Icons or Phosphor Icons (rounded variant)
+- [ ] Configure 24×24px grid with 2px safe zone
+- [ ] Implement active (filled + primary color) and inactive (outline + secondary) states
+
+### 1.4 Spacing & Layout *(DD §3)*
+- [ ] Implement base-4 spacing scale: 4, 8, 12, 16, 24, 32, 48, 64px
+- [ ] Set screen margin: 20px horizontal
+- [ ] Set content max-width: 375px reference frame
+- [ ] Configure 4-column flexible grid with 12px gutters
+- [ ] Set bottom nav height: 80px (incl. safe area) / header height: 56px (standard) / 96px (with search)
+
+### 1.5 Elevation & Shadows *(DD §3.3)*
+- [ ] Level 0: no elevation (backgrounds, list rows)
+- [ ] Level 1: `0 4px 16px rgba(107,92,231,0.08)` — standard cards
+- [ ] Level 2: `0 8px 32px rgba(107,92,231,0.14)` — modals, bottom sheets
+- [ ] Level 3: `0 16px 48px rgba(107,92,231,0.20)` — overlays, toasts
+
+---
+
+## 2. Component Library *(DD §4)*
+
+### 2.1 Buttons *(DD §4.1)*
+- [ ] **Primary Button**: Purple bg `#6B5CE7`, white text, 56px height, 16px radius (pill), min-width 160px
+  - [ ] Pressed state: `scale(0.97)` + darker `#5A4DD6`
+  - [ ] Disabled state: `#B8B0F0` bg, no interaction
+- [ ] **Secondary Button**: Soft Lavender bg `#E8E4FF`, purple text, 1.5px border `#D0C8FF`
+- [ ] **Ghost / Text Button**: no bg, no border — for Skip, Cancel, Learn More
+
+### 2.2 Input Fields *(DD §4.2)*
+- [ ] 56px height, white bg, 1.5px border `#E0DCFF`, radius 14px
+- [ ] Focus state: 2px border `#6B5CE7` + glow `0 0 0 4px rgba(107,92,231,0.15)`
+- [ ] Error state: 2px border `#FF6B9D` + Rose Pink error message
+- [ ] Placeholder color `#B0AECA`, label 12px above field
+
+### 2.3 Cards *(DD §4.3)*
+- [ ] **Standard Content Card**: white, radius 20px, Level-1 shadow, 20px padding
+- [ ] **Mood Card**: Lavender-to-White gradient, 48px emoji, purple selected border
+- [ ] **Session / Therapy Card**: left Teal accent bar (4px), 48px avatar circle, tag chip, metadata row
+
+### 2.4 Bottom Navigation *(DD §4.4)*
+- [ ] 5 tabs: Home, Journal, Sessions, Progress, Profile
+- [ ] Active: filled icon + Primary Purple label
+- [ ] Inactive: outline icon + Secondary text color
+- [ ] White bg with Level-2 top shadow
+- [ ] Rose Pink notification badge (18px circle)
+- [ ] Safe area insets for iPhone notch *(DD §7.2)*
+
+### 2.5 Mood Tracker Widget *(DD §4.5)*
+- [ ] 7 circular emoji buttons in horizontal scroll
+- [ ] Each: 52px circle, soft fill matching mood valence
+- [ ] Selected: 2px Purple ring + `scale(1.15)` + label visible
+- [ ] Unselected: fade to 60% opacity when one is selected
+- [ ] Animated pulse on first render
+
+### 2.6 Progress Ring *(DD §4.6)*
+- [ ] SVG arc, 120px diameter
+- [ ] Track: `#F0ECFF`, Progress: Teal (positive) / Purple (completions)
+- [ ] 8px stroke, center stat number (Mono) + unit label
+- [ ] Animate arc from 0 → value over 600ms ease-out on mount
+
+### 2.7 Toast & Notification Banners *(DD §4.7)*
+- [ ] Bottom of screen, 16px from nav, radius 16px, Level-3 shadow
+- [ ] Icon + message side by side
+- [ ] Auto-dismiss 3s with slide-down animation
+- [ ] Types: Success (Teal border), Warning (Peach), Error (Rose), Info (Purple)
+
+---
+
+## 3. Screen Implementations *(DD §5 + PRD §6–8)*
+
+### 3.1 Onboarding Flow *(DD §5.1)*
+- [ ] **Welcome Screen**: hero illustration, display text, Primary CTA, step dots, full-bleed gradient bg
+- [ ] **Goals Screen**: selectable goal chips (multi-select), progress bar, Continue CTA
+- [ ] **Profile Setup Screen**: name input, avatar picker, age slider, gentle illustration
+- [ ] Transition animation: fade + upward drift (y: 8→0) *(DD §6.2)*
+
+### 3.2 Home / Dashboard *(DD §5.2 + PRD §6.1)*
+- [ ] **Zone 1 — Header** (fixed): greeting H1 + first name, notification bell, date caption, gradient bg `#E8E4FF → transparent` over 96px
+- [ ] **Zone 2 — Mood Check-In**: full-width card (Level 1 shadow), emoji row or selected mood + affirmation (120px / 80px post-checkin)
+- [ ] **Zone 3 — Today's Plan**: H2 + "See All" link, vertical session card stack (72px, Teal accent, title, duration, play button)
+- [ ] **Zone 4 — Streak & Stats**: horizontal row of 3 stat chips (Current Streak, Minutes Today, Journal Entries) — Mono stat numbers
+- [ ] **Zone 5 — Explore Prompt**: horizontal scroll carousel, 140×100px rounded cards with gradient + white icon + label
+- [ ] **Community Health Heatmap** (Patient Portal) — Google Maps based *(PRD §6.1)* — see Feature #5
+
+### 3.3 Mood Check-In Screen *(DD §5.1)*
+- [ ] 7 emoji buttons, optional journal prompt, slider intensity scale
+- [ ] Full-screen modal with calming open animation *(DD §6.2)*
+
+### 3.4 Journal *(DD §5.1)*
+- [ ] Entry list (reverse chrono), FAB to add, mood/tag filter chips
+- [ ] Entry previews: mood emoji + first line of text
+
+### 3.5 New Journal Entry *(DD §5.1)*
+- [ ] Rich text input, mood tag, media attach, save button
+- [ ] Distraction-free minimal layout, auto-save indicator
+
+### 3.6 Sessions / Explore *(DD §5.1)*
+- [ ] Search bar, category tabs (All, Meditate, Breathe, CBT, Sleep), horizontal session carousels
+
+### 3.7 Session Player *(DD §5.1)*
+- [ ] Audio waveform, play/pause, timer, background scene illustration
+- [ ] Immersive full-screen, system UI hidden
+
+### 3.8 Progress Screen *(DD §5.1)*
+- [ ] Weekly mood chart, streak ring, habit completion bars, insights
+- [ ] Charts in Teal + Purple; illustrated empty states
+
+### 3.9 Profile Screen *(DD §5.1)*
+- [ ] Avatar, name, settings list, membership badge, logout
+- [ ] Grouped setting rows with chevrons
+
+### 3.10 Settings — Privacy *(DD §5.1)*
+- [ ] Data controls, biometric lock toggle, export data CTA
+- [ ] Lock icon prominent, plain-language descriptions
+
+### 3.11 Therapist Match *(DD §5.1)*
+- [ ] Filter bar, therapist cards (photo, specialty, rating, price)
+- [ ] Cards with left Teal accent, "available" badge top-right
+
+---
+
+## 4. Motion & Animation System *(DD §6)*
+
+### 4.1 Transition Defaults *(DD §6.1)*
+- [ ] Default duration: 300ms
+- [ ] Long transitions: 400–500ms
+- [ ] Easing: `cubic-bezier(0.4, 0, 0.2, 1)`
+- [ ] Breathing animations: sine wave, 4s cycle, scale 1.0→1.04
+- [ ] Skeleton loaders: shimmer left→right, 1.5s loop
+
+### 4.2 Screen Transitions *(DD §6.2)*
+- [ ] Navigation push: slide right→left (x: 100%→0)
+- [ ] Modal open: slide up + backdrop fade
+- [ ] Tab switch: cross-fade 250ms
+- [ ] Onboarding steps: fade + upward drift
+
+### 4.3 Micro-interactions *(DD §6.3)*
+- [ ] Button press: `scale(0.96)` at 80ms, spring release
+- [ ] Mood select: scale to 1.2 + ripple outward
+- [ ] Progress ring: arc draw on mount, 600ms ease-out
+- [ ] Streak increment: digit-by-digit tick up
+- [ ] Successful save: spinner → checkmark morph (400ms)
+
+### 4.4 Haptic Feedback *(DD §8.2)*
+- [ ] Light impact haptics on all primary CTAs and mood selections
+
+---
+
+## 5. Community Health Heatmap System *(PRD §6.1)*
+
+### 5.1 Map & Visualization
+- [ ] Integrate Google Maps Platform
+- [ ] Display village-level health heatmap within configurable radius (default 30 km)
+- [ ] Aggregate anonymised data from consultations, symptoms, ASHA reports, pharmacy logs
+
+### 5.2 Alert System
+- [ ] Implement 3-tier color-coded zones:
+  - [ ] **GREEN** (Safe): <5% weekly symptom increase vs 4-week baseline
+  - [ ] **YELLOW** (Early Warning): 5–20% increase OR 3+ similar symptoms in 48h → alert to PHC + ASHA
+  - [ ] **RED** (Outbreak): >20% increase OR 5+ identical symptoms in 72h → auto DHO notification + resource alert
+
+### 5.3 Filtering & Real-Time Updates
+- [ ] Filter by: disease/symptom type, time range (24h/7d/30d/custom), geographic radius
+- [ ] Near-real-time updates every 15 min via WebSocket push
+- [ ] Cached snapshot for low-bandwidth users
+
+### 5.4 Cluster Detection
+- [ ] Detect clusters: fever, respiratory, diarrhoea, skin infections, vector-borne diseases
+- [ ] Auto-alert DHO on red zones via SMS + dashboard push
+
+### 5.5 Low-Bandwidth Mode
+- [ ] Serve static PNG heatmap snapshot when connection < 2G
+- [ ] Show "Last updated: X hours ago" timestamp for offline cache
+
+### 5.6 Data Privacy *(PRD §6.1.2)*
+- [ ] Aggregate at village level only — no individual patient location/identity
+- [ ] Minimum 5 cases threshold before village appears on map (k-anonymity)
+- [ ] Data retention: 2 years source records, indefinite aggregated trends
+
+### 5.7 Performance *(PRD §6.1.3)*
+- [ ] Heatmap loads within 3s on 3G
+- [ ] Handle 10,000 concurrent viewers during outbreak events
+
+---
+
+## 6. Ayushman Card-Linked Health Records *(PRD §6.2)*
+
+### 6.1 ABHA Integration
+- [ ] Camera-based ABHA card scanning (14-digit ID)
+- [ ] Manual ABHA ID entry fallback
+- [ ] Fetch records from ABHA Registry API
+- [ ] Local cache with offline access
+
+### 6.2 Record Fields Display *(PRD §6.2.1)*
+- [ ] Identity: Name, DOB, Gender, Blood Group, ABHA ID
+- [ ] Allergies: Drug, food, known reactions
+- [ ] Vitals History: BP, SpO2, weight, BMI, temperature over time
+- [ ] Lab Results: Hb, blood sugar, lipid profile, urine routine
+- [ ] Chronic Diseases: Hypertension, diabetes, COPD, heart disease, TB, HIV
+- [ ] Medications: Current prescriptions with dose, frequency, duration
+- [ ] Vaccinations: COVID-19, influenza, tetanus, Hep B, polio (dates + batch) — COWIN integration
+- [ ] Visit History: All past teleconsult and in-person PHC visits with notes
+
+### 6.3 AI Wellness Recommendations *(PRD §6.2.2)*
+- [ ] Fine-tuned GPT-4 model generates personalised daily recommendations
+- [ ] Severity indicators: Informational, Advisory, Urgent
+- [ ] Categories: diet, activity, medication adherence, sleep, hydration, seasonal precautions
+- [ ] Diabetic-specific: daily blood sugar tracking reminders + trend alerts
+- [ ] Hypertensive-specific: daily BP log prompt + visual trend chart
+- [ ] Deliver as text, audio playback, and SMS summary
+- [ ] ASHA workers get aggregated risk scores for assigned households
+
+### 6.4 Lifestyle Risk Score *(PRD §6.2.3)*
+- [ ] 0–100 composite score from lifestyle questionnaire + medical history
+- [ ] Questionnaire covers: sleep, diet, activity, stress, smoking/alcohol, water source
+- [ ] Monthly recalculation with trend line display
+- [ ] High-risk (>70) → flag for proactive ASHA outreach
+
+---
+
+## 7. Voice-Based Symptom Input & Multilingual NLP *(PRD §6.3)*
+
+### 7.1 Voice Input Flow *(PRD §6.3.1)*
+- [ ] Microphone button in Patient Portal
+- [ ] System prompt in patient's detected language
+- [ ] Capture raw audio → send to STT engine
+- [ ] Patient confirmation: "I understood: [summary]. Is this correct?" (Yes/No voice or keypad)
+- [ ] Re-record or field-edit on correction
+
+### 7.2 Speech-to-Text *(PRD §6.3.1)*
+- [ ] Integrate Google Cloud Speech-to-Text
+- [ ] Custom medical vocabulary model for Indian languages
+- [ ] Language auto-detection (confidence threshold: 80%)
+
+### 7.3 Medical NLP Model *(PRD §6.3.3)*
+- [ ] Fine-tuned multilingual BERT (mBERT) + CRF layer for NER
+- [ ] Train on 100K+ anonymised PHC consultation transcripts
+- [ ] Task 1 — NER: Extract symptom entities, body parts, severity, duration
+- [ ] Task 2 — Intent: Classify new complaint / follow-up / medication query / emergency
+- [ ] Task 3 — Severity: Map symptoms to preliminary severity score
+- [ ] Map extracted entities to ICD-10 symptom codes
+- [ ] Output: structured symptom JSON for triage engine
+- [ ] Target: >92% F1-score, <2s latency for 30-sec audio
+- [ ] Fallback: if NLP confidence <70%, auto-route to text questionnaire
+
+### 7.4 Language Support *(PRD §6.3.2)*
+- [ ] v1.0 primary: Hindi, Bengali, Telugu, Marathi, Tamil, Gujarati, Kannada, Odia, Punjabi, Malayalam
+- [ ] v1.0 IVR-only: Bhojpuri, Rajasthani, Maithili, Santali
+
+---
+
+## 8. Appointment Booking — Online & Offline *(PRD §6.4)*
+
+### 8.1 Online Booking (App/Web) *(PRD §6.4.1)*
+- [ ] Real-time availability calendar with doctor/slot selection
+- [ ] Estimated wait time display (from queue AI)
+- [ ] Push notification + SMS confirmation on booking
+- [ ] Reschedule/cancel up to 30 min before slot
+- [ ] Real-time calendar sync — slot released on cancel
+
+### 8.2 Offline SMS Booking *(PRD §6.4.2)*
+- [ ] SMS shortcode: `START` to `14441`
+- [ ] Flow: ABHA ID → BOOK + date → slot selection → confirmation with token & ETA
+- [ ] `STATUS` command for queue check
+- [ ] `CANCEL` command for cancellation
+- [ ] Integrate via Twilio / Exotel
+
+### 8.3 USSD Booking (Zero-Data) *(PRD §6.4.3)*
+- [ ] Dial `*HEALTH#` (`*43258#`)
+- [ ] Menu: language → ABHA ID → slot → confirmation
+- [ ] SMS confirmation after USSD session
+
+### 8.4 Missed-Call Auto-Callback *(PRD §6.4.4)*
+- [ ] Log caller ID from toll-free number
+- [ ] Auto-trigger outbound IVR within 5 min
+- [ ] IVR guides symptom collection + booking
+- [ ] ASHA worker follow-up if IVR incomplete (within 2 hrs)
+
+### 8.5 Emergency Button (SOS) *(PRD §6.4.5)*
+- [ ] Prominent SOS button on Patient Portal home — always visible
+- [ ] Single-tap triggers:
+  - [ ] GPS-based ambulance dispatch to nearest facility
+  - [ ] SMS alert to family contact
+  - [ ] Auto-dial to 108 (National Ambulance Service)
+- [ ] SMS `EMERGENCY` to `14441` for feature-phone users
+- [ ] Real-time ambulance ETA display
+- [ ] Auto-assign CRITICAL priority in triage
+- [ ] Instant doctor notification on dashboard
+
+---
+
+## 9. AI Triage System *(PRD §6.5)*
+
+### 9.1 Stage 1 — Emergency Screening *(PRD §6.5.1)*
+- [ ] 3 questions, 30-second completion target
+- [ ] Q1.1: Breathing difficulty / chest pain → CRITICAL
+- [ ] Q1.2: Lost consciousness / limb immobility → CRITICAL
+- [ ] Q1.3: Uncontrolled bleeding / severe injury → CRITICAL + ambulance prompt
+
+### 9.2 Stage 2 — Severity Assessment *(PRD §6.5.1)*
+- [ ] 8–12 dynamically selected questions, 3–5 min
+- [ ] Domains: pain intensity (0.25), duration (0.15), progression (0.20), associated symptoms (0.15), chronic conditions (0.15), age/vulnerability (0.10)
+
+### 9.3 Stage 3 — Context & History *(PRD §6.5.1)*
+- [ ] 3–5 questions, 1–2 min
+- [ ] Covers: travel, contact with sick individuals, current meds, allergies, visit reason
+
+### 9.4 Severity Scoring Algorithm *(PRD §6.5.2)*
+- [ ] Weighted composite score (0–10) from Stage 2 domain scores
+- [ ] Vulnerability multipliers: >60 yrs (+10%), <5 yrs (+15%), pregnancy (+20%)
+- [ ] Chronic disease penalties: diabetes (+0.5), heart disease (+1.0), immunocompromised (+1.5)
+- [ ] NLP severity from voice input integration
+- [ ] Temporal urgency: worsening rapidly → +1.0
+- [ ] **CRITICAL** (8–10): immediate consult + doctor alert
+- [ ] **URGENT** (5–7): <15 min wait, next in queue
+- [ ] **MODERATE** (3–4): <45 min wait
+- [ ] **ROUTINE** (1–2): <90 min wait
+
+### 9.5 Dynamic Re-Prioritisation *(PRD §6.5.3)*
+- [ ] Triggers: patient symptom update, ASHA flag, doctor manual elevate/lower
+- [ ] Auto re-scoring every 5 min for all queued patients
+- [ ] +2 point increase → immediate queue promotion + doctor notification
+- [ ] -2 point decrease → voluntary move down (patient SMS consent)
+- [ ] Full audit trail logging
+
+---
+
+## 10. Predictive Queue & Transparency *(PRD §6.6)*
+
+### 10.1 Patient Queue View *(PRD §6.6.1)*
+- [ ] Display: token number, queue position, estimated wait time
+- [ ] Simplified reason for each person ahead ("Higher severity case" — no personal data)
+- [ ] SMS alerts: 30 min before, 15 min before, "you're next"
+- [ ] "Why is this person ahead?" tap-to-expand (severity category only)
+
+### 10.2 Predictive Queue Model *(PRD §6.6.2)*
+- [ ] Algorithm: XGBoost Gradient Boosting Regression
+- [ ] Features: queue depth, severity distribution, doctor avg consult time (7-day rolling), time of day, day of week, patient age
+- [ ] Output: predicted wait (minutes) with ±10 min confidence interval
+- [ ] Target: <15% MAPE
+- [ ] Recalculate after every consultation completion
+
+---
+
+## 11. Doctor Portal *(PRD §7)*
+
+### 11.1 Pre-Consultation Patient Brief *(PRD §7.1)*
+- [ ] AI-generated (GPT-4) structured patient brief from health record + triage data
+- [ ] Display: visit reason, symptoms + severity + duration, health history, chronic conditions
+- [ ] Drug allergies highlighted in red
+- [ ] Medication interaction flags
+- [ ] Latest vitals from ABHA
+- [ ] Triage severity score with factors
+- [ ] Suggested differential diagnoses (doctor-only, not shown to patient)
+
+### 11.2 Queue Management Dashboard *(PRD §7.2)*
+- [ ] Live queue sorted by severity, color-coded rows (red/orange/yellow/green)
+- [ ] Manual priority elevate/lower with mandatory reason note (audited)
+- [ ] Click-to-start launches video/audio call automatically
+- [ ] Consultation timer for equitable time allocation
+- [ ] Auto-save notes every 30 seconds
+
+### 11.3 Prescription & Pharmacy Integration *(PRD §7.3)*
+- [ ] Structured prescription form: drug name (generic), dose, frequency, duration, route, instructions
+- [ ] Drug-allergy interaction check against patient record with conflict flags
+- [ ] Auto-route to nearest pharmacy with real-time inventory check
+- [ ] If unavailable: find next-nearest pharmacy with stock + ETA
+- [ ] Patient SMS: pharmacy name, address, availability confirmation
+- [ ] Aggregate monthly prescription patterns for proactive stock orders
+
+### 11.4 Post-Consultation Workflow *(PRD §7.4)*
+- [ ] Doctor adds: diagnosis (ICD-10 + plain language), prescription, follow-up date, referral
+- [ ] Simplified diagnosis summary in patient's language
+- [ ] TTS audio clip via WhatsApp or SMS
+- [ ] Auto-schedule follow-up with lower priority
+- [ ] Sync consultation record to ABHA profile
+
+---
+
+## 12. Pharmacy Module *(PRD §8)*
+
+### 12.1 Analytics Dashboard *(PRD §8.1)*
+- [ ] Total Prescriptions Received — daily bar chart (30-day trend), real-time
+- [ ] Fulfillment Rate — donut chart + daily trend line, real-time
+- [ ] Most Dispensed Medicines — horizontal bar (top 20, monthly), daily refresh
+- [ ] Out-of-Stock Incidents — heat-map calendar, real-time
+- [ ] Stock Level Alerts — traffic-light alert list, hourly
+- [ ] Govt. Scheme Reimbursements — stacked bar (pending vs received, monthly), weekly batch
+- [ ] Average Fulfillment Time — line chart with benchmark overlay, daily
+- [ ] Cross-Pharmacy Requests — Sankey / two-bar comparison, daily
+- [ ] Monthly Consumption Forecast — column chart + dashed forecast line, monthly auto-gen
+- [ ] Revenue by Source — pie chart (private / PM-JAY / state / platform), monthly
+
+### 12.2 Prescription Routing *(PRD §8.2.1)*
+- [ ] Instant secure API transmission of prescription to linked pharmacy
+- [ ] Push notification with patient token + prescription details
+- [ ] Pharmacy confirms receipt + estimated prep time (default 30 min)
+- [ ] Patient SMS with pharmacy name + ready-by time
+- [ ] If out-of-stock: suggest generic equivalent (requires doctor approval) OR trigger cross-pharmacy request
+
+### 12.3 Cross-Pharmacy Medicine Sourcing *(PRD §8.2.2)*
+- [ ] Query inventory API of pharmacies within 10 km radius
+- [ ] Display transfer request on dashboard
+- [ ] Inter-pharmacy request → confirm → estimated delivery
+- [ ] Patient notification: pickup/delivery + ETA
+- [ ] Transfer logging + automatic reimbursement split
+
+### 12.4 Proactive Monthly Stock Planning *(PRD §8.2.3)*
+- [ ] 3-month prescription pattern analysis
+- [ ] ARIMA + seasonal adjustment forecast model
+- [ ] "Monthly Stock Forecast Report" 7 days before month-end
+- [ ] Report: predicted demand, recommended order qty, current stock, reorder dates
+- [ ] Review + adjust + submit order to supplier via dashboard
+- [ ] Cross-check forecasts against PHC doctor consultation calendar
+
+### 12.5 Medicine Availability for Patients *(PRD §8.3)*
+- [ ] In-app medicine search from prescription
+- [ ] Display: nearest pharmacy availability, transfer wait, generic alternatives
+- [ ] Map view: nearest pharmacy with stock, distance, route
+
+---
+
+## 13. Audio Diagnosis Explanation *(PRD §9)*
+
+### 13.1 Generation Pipeline *(PRD §9.1)*
+- [ ] GPT-4 prompt: rewrite diagnosis for Class 8 education in patient's language
+- [ ] Safety review: drug dosage double-checked against prescription data
+- [ ] Google Cloud TTS in patient's language + regional accent
+- [ ] Audio clip: MP3, <90 seconds
+- [ ] Deliver via WhatsApp (primary) or SMS link (fallback)
+- [ ] Replay available in Patient Portal under "My Consultations"
+
+### 13.2 Audio Content Structure *(PRD §9.2)*
+- [ ] Greeting with patient name + doctor name
+- [ ] Diagnosis: plain language condition description
+- [ ] Cause: simple explanation
+- [ ] Treatment: each medicine — what it's for, dosage, timing, duration
+- [ ] Warning signs: when to come back / call 108
+- [ ] Follow-up date reminder
+- [ ] Culturally appropriate closing in local dialect
+
+### 13.3 Accessibility *(PRD §9.3)*
+- [ ] Audio controls: play/pause, rewind 10s, speed control (0.75× for slow comprehension)
+- [ ] Full text transcript alongside audio
+- [ ] ASHA worker access to patient audio from household roster
+- [ ] Audio stored 12 months in patient health record
+
+---
+
+## 14. Backend — APIs *(PRD §11)*
+
+### 14.1 Triage & Queue APIs *(PRD §11.1)*
+- [ ] `POST /api/triage/start` — init triage session → `{ session_id, questions }`
+- [ ] `POST /api/triage/submit` — submit answers → `{ score, severity, next_steps }`
+- [ ] `GET /api/queue/{doctor_id}` — fetch ordered queue → `{ entries: [ { position, patient_summary, score } ] }`
+- [ ] `POST /api/queue/reprioritise` — trigger re-score for all entries
+- [ ] `GET /api/queue/eta/{entry_id}` — predicted wait → `{ wait_minutes, confidence_interval }`
+- [ ] `POST /api/emergency` — dispatch ambulance + notify doctor
+
+### 14.2 Health Record APIs *(PRD §11.2)*
+- [ ] `GET /api/records/{abha_id}` — fetch patient record from ABHA
+- [ ] `POST /api/records/wellness` — generate AI wellness recommendation
+- [ ] `GET /api/records/history/{patient_id}` — full consultation history
+
+### 14.3 Pharmacy APIs *(PRD §11.3)*
+- [ ] `POST /api/pharmacy/prescription` — route prescription to pharmacy
+- [ ] `GET /api/pharmacy/stock/{medicine}` — check stock at nearby pharmacies
+- [ ] `POST /api/pharmacy/cross-request` — initiate cross-pharmacy transfer
+- [ ] `GET /api/pharmacy/forecast/{id}` — monthly stock forecast
+
+---
+
+## 15. Data Model *(PRD §10)*
+
+- [ ] **Patient**: patient_id, abha_id, phone, language_pref, village_id, risk_score
+- [ ] **HealthRecord**: record_id, patient_id, vitals (JSON), allergies, chronic_conditions
+- [ ] **Consultation**: consult_id, patient_id, doctor_id, triage_score, status, notes, audio_url
+- [ ] **TriageSession**: session_id, patient_id, q1/q2/q3 answers, score, severity
+- [ ] **QueueEntry**: entry_id, patient_id, doctor_id, position, score, timestamps
+- [ ] **Prescription**: rx_id, consult_id, doctor_id, items (JSON), status, pharmacy_id
+- [ ] **PharmacyItem**: item_id, pharmacy_id, medicine_code, quantity, reorder_level
+- [ ] **HeatmapPoint**: point_id, village_id, symptom_type, count, severity_level, timestamp
+- [ ] **Village**: village_id, name, district, lat, lng, asha_worker_id
+- [ ] **Doctor**: doctor_id, name, specialisation, languages, available_slots (JSON)
+- [ ] **Pharmacy**: pharmacy_id, name, village_id, lat, lng, owner_phone, verified
+
+---
+
+## 16. Auth & Security *(PRD §12)*
+
+- [ ] OTP-based login for patients (no password required)
+- [ ] RBAC: Patient, Doctor, Pharmacist, ASHA Worker, DHO roles
+- [ ] AES-256 encryption at rest
+- [ ] TLS 1.3 in transit
+- [ ] ABDM (ABHA) compliance
+- [ ] DPDP Act 2023 compliance
+- [ ] Quarterly security audit schedule
+- [ ] Biometric lock toggle (Settings screen) *(DD §5.1)*
+
+---
+
+## 17. Accessibility *(DD §7 + PRD §12)*
+
+### 17.1 Color Contrast *(DD §7.1)*
+- [ ] Body text on white: ≥4.5:1 (WCAG AA)
+- [ ] Large text (18px+ Regular / 14px+ Bold): ≥3:1
+- [ ] Never convey meaning through color alone — pair with icon/text
+
+### 17.2 Touch Targets *(DD §7.2)*
+- [ ] Minimum 44×44px on all interactive elements
+- [ ] Invisible padding on small icons for larger tap area
+- [ ] Full-height tap zone on bottom nav tabs
+
+### 17.3 Screen Reader *(DD §7.3)*
+- [ ] All images/illustrations: descriptive `accessibilityLabel`
+- [ ] Interactive elements: `accessibilityRole` (button, tab, etc.)
+- [ ] Dynamic content: `accessibilityLiveRegion`
+- [ ] Focus order: top→bottom, left→right
+
+### 17.4 Text Sizing *(DD §7.4)*
+- [ ] Dynamic Type / font scaling support
+- [ ] Minimum production font: 11px (captions only)
+- [ ] Proportional line height scaling
+- [ ] Card reflow up to 200% text scale
+
+### 17.5 WCAG *(PRD §12)*
+- [ ] WCAG 2.1 Level AA compliance for all web interfaces
+
+---
+
+## 18. Non-Functional Requirements *(PRD §12)*
+
+- [ ] API response p95: <500ms (non-AI endpoints)
+- [ ] AI triage latency: <3s end-to-end
+- [ ] NLP pipeline latency: <2s for 30-sec audio
+- [ ] Heatmap load on 3G: <3s
+- [ ] System uptime SLA: 99.5% monthly (<3.6 hrs downtime/month)
+- [ ] Concurrent active users: 50,000 (500 PHCs target)
+- [ ] PWA offline: core features (queue check, record view) work offline
+- [ ] Localization: 10 languages at launch (Hindi + 9 regional)
+- [ ] Device support: Android 5.0+, iOS 12+, any modern browser
+- [ ] SMS delivery: <30s for appointment confirmations
+
+---
+
+## 19. Integrations *(PRD §5)*
+
+- [ ] **ABHA API** — patient health ID linkage + record fetching
+- [ ] **COWIN API** — vaccination records
+- [ ] **Google Cloud STT** — speech-to-text for voice input
+- [ ] **Google Cloud TTS** — text-to-speech for audio diagnosis
+- [ ] **GPT-4** — patient briefs, wellness recommendations, diagnosis summarisation
+- [ ] **Google Maps Platform** — heatmap rendering, pharmacy geolocation
+- [ ] **Twilio / Exotel** — SMS gateway, IVR, voice callbacks
+- [ ] **Firebase FCM** — push notifications
+- [ ] **NHM APIs** — government scheme reimbursement reporting
+- [ ] **Telecom USSD API** — zero-data patient registration
+
+---
+
+## 20. QA & Testing *(DD §8.3 + PRD §12)*
+
+- [ ] Test all screens on iPhone SE (375px) and iPhone 14 Pro Max (430px)
+- [ ] Test dark mode — all custom colors have dark-mode variants
+- [ ] Verify keyboard avoidance on all form screens
+- [ ] Check safe area insets on all full-screen screens
+- [ ] Run Accessibility Inspector on each screen
+- [ ] Performance testing: 50K concurrent users
+- [ ] Security audit: encryption, RBAC, data privacy
+- [ ] ABDM certification
+- [ ] Pilot with 5 PHCs *(PRD §13 Phase 7)*
+
+---
+
+## 21. Release Roadmap *(PRD §13)*
+
+| Phase | Timeline | Deliverables |
+|-------|----------|-------------|
+| Phase 0 — Foundation | Month 1–2 | Auth, patient registration (app+SMS), ABHA integration, health record display |
+| Phase 1 — Triage Core | Month 2–3 | 3-stage triage questionnaire, severity scoring, static queue, doctor dashboard v1 |
+| Phase 2 — NLP + Voice | Month 3–4 | NLP model training, voice input (Hindi + 3 regional), IVR flow |
+| Phase 3 — Queue Intel  | Month 4–5 | Dynamic re-prioritisation, predictive wait, queue transparency, SMS alerts |
+| Phase 4 — Pharmacy | Month 5–6 | Pharmacy module, prescription routing, stock check, cross-pharmacy, analytics |
+| Phase 5 — Heatmap | Month 6–7 | Heatmap system, outbreak detection, DHO alerts, ASHA data entry |
+| Phase 6 — Audio Diag | Month 7–8 | Audio diagnosis, TTS, WhatsApp delivery, wellness AI |
+| Phase 7 — Hardening | Month 8–9 | Performance optimisation, security audit, ABDM certification, 5-PHC pilot |
+| **v1.0 Launch** | **Month 9–10** | **Full production launch across 50 PHCs** |
+
+---
+
+> **Note**: This TODO references 2 source documents. If you have a 3rd document, please share it and this list will be updated accordingly.
