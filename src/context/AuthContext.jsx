@@ -43,6 +43,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('ss_token');
     setToken(null);
     setUser(null);
+    window.location.href = '/';
   }, []);
 
   const authFetch = useCallback(async (url, options = {}) => {
