@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Stethoscope, ClipboardList, Map, User, Pill, Activity, Calendar } from 'lucide-react';
+// Added LogOut icon to the imports
+import { Home, Stethoscope, ClipboardList, Map, User, Pill, Activity, Calendar, LogOut } from 'lucide-react';
 
 const navConfigs = {
   patient: [
@@ -20,12 +21,22 @@ const navConfigs = {
 };
 
 export default function Navbar() {
-  const { user } = useAuth();
+  // Destructure logout from your AuthContext
+  const { user, logout } = useAuth(); 
   const location = useLocation();
   const navigate = useNavigate();
 
   if (!user) return null;
   const items = navConfigs[user.role] || navConfigs.patient;
+
+  const handleLogout = async () => {
+    try {
+      await logout(); // Call the logout function from your context
+      navigate('/login'); // Redirect to login page
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
+  };
 
   return (
     <nav style={{
@@ -36,6 +47,7 @@ export default function Navbar() {
       padding: '0 8px', paddingBottom: 'env(safe-area-inset-bottom)',
       zIndex: 100, borderTop: '1px solid var(--border-light)',
     }}>
+      {/* Navigation Items */}
       {items.map(item => {
         const active = location.pathname === item.path;
         const Icon = item.icon;
@@ -49,8 +61,9 @@ export default function Navbar() {
               padding: '8px 12px', borderRadius: 'var(--radius-sm)',
               color: active ? 'var(--primary)' : 'var(--text-secondary)',
               transition: 'all 0.2s ease', minWidth: '56px',
-              background: active ? 'var(--primary-bg)' : 'transparent',
+              border: 'none', background: active ? 'var(--primary-bg)' : 'transparent',
               transform: active ? 'scale(1.05)' : 'scale(1)',
+              cursor: 'pointer'
             }}
           >
             <Icon size={22} fill={active ? 'var(--primary)' : 'none'} strokeWidth={active ? 2.5 : 1.8} />
@@ -58,6 +71,23 @@ export default function Navbar() {
           </button>
         );
       })}
+
+      {/* NEW: Logout Button */}
+      <button
+        id="nav-logout"
+        onClick={handleLogout}
+        style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+          padding: '8px 12px', borderRadius: 'var(--radius-sm)',
+          color: '#e74c3c', // Red color for logout
+          transition: 'all 0.2s ease', minWidth: '56px',
+          border: 'none', background: 'transparent',
+          cursor: 'pointer'
+        }}
+      >
+        <LogOut size={22} strokeWidth={1.8} />
+        <span style={{ fontSize: '11px', fontWeight: 500 }}>Logout</span>
+      </button>
     </nav>
   );
 }
