@@ -314,46 +314,6 @@ The app comes pre-seeded with demo data. Use these one-click login options:
 
 ---
 
-## 🔒 Security Features
-
-| Feature | Implementation |
-|---------|---------------|
-| **JWT Authentication** | Stateless tokens with 7-day expiry |
-| **RBAC** | Role-based route guards (patient / doctor / pharmacist) |
-| **Input Validation** | Server-side schema validation on all POST endpoints |
-| **XSS Prevention** | HTML tag stripping via `sanitize()` utility |
-| **Security Headers** | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection` |
-| **Error Isolation** | React ErrorBoundary prevents full-app crashes |
-| **Token Expiry** | Automatic logout on expired/invalid tokens |
-| **CORS Control** | Configurable origin whitelist |
-
----
-
-## 📱 Screenshots
-
-### Patient Flow
-- **Landing Page** with language selector and demo access
-- **Patient Dashboard** with multilingual quick actions (Hindi shown)
-- **Voice Triage** — speak symptoms in any Indian language
-- **AI Triage** — 3-stage severity assessment with scoring
-
-### Doctor Flow
-- **Queue Management** — severity-sorted patient list
-- **Patient Brief** — vitals, allergies, chronic conditions at a glance
-- **Consultation** — diagnosis form with live prescription builder
-
-### Pharmacy Flow
-- **Overview** — monthly trends, stock alerts, fulfillment rate
-- **Rx Queue** — pending prescriptions with one-tap dispense
-- **Inventory** — search, stock levels, reorder forecasting
-
-### Surveillance
-- **Health Heatmap** — interactive Leaflet map with village markers
-- **Symptom Filtering** — filter by fever, respiratory, diarrhea, etc.
-- **Alerts** — red zone and outbreak notifications
-
----
-
 ## 🗺️ Roadmap
 
 - [ ] **Persistent Database** — Migrate from in-memory to SQLite/PostgreSQL
@@ -367,9 +327,6 @@ The app comes pre-seeded with demo data. Use these one-click login options:
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
